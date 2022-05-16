@@ -16,7 +16,6 @@
 // 4. Complete the partial implementation of `Display` for
 //    `ParseClimateError`.
 
-// I AM NOT DONE
 
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
@@ -25,7 +24,7 @@ use std::str::FromStr;
 
 // This is the custom error type that we will be using for the parser for
 // `Climate`.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum ParseClimateError {
     Empty,
     BadLen,
@@ -47,6 +46,7 @@ impl From<ParseIntError> for ParseClimateError {
 impl From<ParseFloatError> for ParseClimateError {
     fn from(e: ParseFloatError) -> Self {
         // TODO: Complete this function
+        ParseClimateError::ParseFloat(e)
     }
 }
 
@@ -62,11 +62,16 @@ impl Display for ParseClimateError {
         // Imports the variants to make the following code more compact.
         use ParseClimateError::*;
         match self {
+            Empty => write!(f, "empty input"),
+            BadLen => write!(f, "incorrect number of fields"),
             NoCity => write!(f, "no city name"),
             ParseFloat(e) => write!(f, "error parsing temperature: {}", e),
+            ParseInt(e) => write!(f, "error parsing year: {}", e)
         }
     }
 }
+
+impl Error for ParseClimateError {}
 
 #[derive(Debug, PartialEq)]
 struct Climate {
@@ -88,13 +93,25 @@ impl FromStr for Climate {
     // TODO: Complete this function by making it handle the missing error
     // cases.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s == "" {
+            return Err(ParseClimateError::Empty);
+        }
         let v: Vec<_> = s.split(',').collect();
         let (city, year, temp) = match &v[..] {
             [city, year, temp] => (city.to_string(), year, temp),
             _ => return Err(ParseClimateError::BadLen),
         };
-        let year: u32 = year.parse()?;
-        let temp: f32 = temp.parse()?;
+        if city == "".to_string() {
+            return Err(ParseClimateError::NoCity);
+        }
+        let year: u32 = match year.parse() {
+            Ok(y) => y,
+            Err(e) => {return Err(ParseClimateError::ParseInt(e)); }
+        };
+        let temp: f32 = match temp.parse() {
+            Ok(t) => t,
+            Err(e) => { return Err(ParseClimateError::ParseFloat(e)); }
+        };
         Ok(Climate { city, year, temp })
     }
 }
