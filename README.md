@@ -1,3 +1,7 @@
+# What is this
+
+This repo contains my solutions for all of the available rustlings exercises as of May 16th 2022.
+
 # rustlings 🦀❤️
 
 Greetings and welcome to `rustlings`. This project contains small exercises to get you used to reading and writing Rust code. This includes reading and responding to compiler messages!
